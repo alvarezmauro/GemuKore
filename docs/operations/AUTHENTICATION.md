@@ -79,3 +79,23 @@ The browser suite explicitly blanks OAuth configuration and uses an unavailable 
 Verified on 2026-10-04: lint, TypeScript, formatting, the production build, 34 unit/component tests, 30 database integration tests and 38 desktop/mobile browser tests pass. The migration is applied to development PostgreSQL. The refreshed Docker app's login and design preview render without browser errors or a framework overlay; anonymous `/app` redirects to login.
 
 Once credentials are configured, verify each provider's real consent/redirect flow, session creation, granted/denied `/app` destination and signout. Supply the exact verified address to the explicit [first-administrator command](ACCESS_GRANTS.md). Grant enforcement and server role permissions are implemented in Tasks 3.3–3.4. The verification counts above record Task 3.2, before grant enforcement.
+
+## Multiple local authentication addresses
+
+`BETTER_AUTH_URL` remains the canonical origin. Set `AUTH_ADDITIONAL_ORIGINS` to a comma-separated list of additional exact browser origins. Each must be HTTPS, except loopback HTTP during development/test. Paths, credentials, wildcards, queries and fragments are rejected. Production does not permit HTTP origins. Request Host values map only to the configured origins (supporting internal Next.js listener URLs behind a proxy); unlisted hosts are rejected and X-Forwarded-Host is ignored; each accepted origin still requires same-origin login/signout and retains OAuth state/CSRF checks. Cookies are host-only, so sign in separately on each hostname.
+
+For local Next.js with Tailscale HTTPS:
+
+```dotenv
+BETTER_AUTH_URL=https://macbook-pro-2019.tail4e49f8.ts.net:3001
+AUTH_ADDITIONAL_ORIGINS=http://localhost:3001
+```
+
+Register both Google authorized redirect URIs:
+
+```text
+http://localhost:3001/api/auth/callback/google
+https://macbook-pro-2019.tail4e49f8.ts.net:3001/api/auth/callback/google
+```
+
+Register both browser origins in the Google web client's authorized JavaScript origins if that client uses them. Restart Next.js after configuration changes. The Tailscale HTTPS endpoint must already route to the app. GitHub applications have their own callback restrictions; verify provider support before enabling another hostname for GitHub. Production Compose intentionally keeps a single fixed HTTPS origin.

@@ -182,6 +182,7 @@ http://:8080 {
   ];
   for (const name of ["app", "migrate", "operations"]) {
     services[name].environment = {
+      AUTH_ADDITIONAL_ORIGINS: "",
       BETTER_AUTH_URL: "https://127.0.0.1:3111",
       NODE_EXTRA_CA_CERTS: "/test/certificate.pem",
     };
@@ -311,6 +312,7 @@ http://:8080 {
         PRODUCTION_TEST_PROJECT: project,
         PRODUCTION_TEST_ENV: envFile,
         PRODUCTION_TEST_OVERRIDE: override,
+        AUTH_ADDITIONAL_ORIGINS: "",
         BETTER_AUTH_URL: "https://127.0.0.1:3111",
       },
       timeout: 300000,
@@ -509,6 +511,7 @@ http://:8080 {
           PRODUCTION_TEST_ENV: recoveryEnv,
           PRODUCTION_TEST_OVERRIDE: override,
           PRODUCTION_RESTORE_FIXTURE: JSON.stringify(baseline),
+          AUTH_ADDITIONAL_ORIGINS: "",
           BETTER_AUTH_URL: "https://127.0.0.1:3111",
         },
         timeout: 180000,

@@ -128,6 +128,7 @@ async function main() {
           env: {
             ...process.env,
             DATABASE_URL: database.databaseUrl,
+            AUTH_ADDITIONAL_ORIGINS: "",
             BETTER_AUTH_URL: "https://127.0.0.1:3111",
             BETTER_AUTH_SECRET: randomUUID() + randomUUID(),
             GOOGLE_CLIENT_ID: "access-browser-test",

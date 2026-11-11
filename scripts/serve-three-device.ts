@@ -151,6 +151,7 @@ async function main() {
       ...process.env,
       NODE_ENV: "production",
       DATABASE_URL: database.databaseUrl,
+      AUTH_ADDITIONAL_ORIGINS: "",
       BETTER_AUTH_URL: origin,
       BETTER_AUTH_SECRET: secret,
       GOOGLE_CLIENT_ID: "device-fixture-only",

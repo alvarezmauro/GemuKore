@@ -28,6 +28,7 @@ export default defineConfig({
       DATABASE_URL: "postgresql://test:test@127.0.0.1:1/gemukore_e2e",
       NEXT_TELEMETRY_DISABLED: "1",
       // Explicitly isolate unconfigured-login checks from local OAuth secrets.
+      AUTH_ADDITIONAL_ORIGINS: "",
       BETTER_AUTH_URL: "",
       BETTER_AUTH_SECRET: "",
       GOOGLE_CLIENT_ID: "",

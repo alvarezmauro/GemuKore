@@ -422,9 +422,12 @@ describe("real Better Auth callback with isolated PostgreSQL and mocked provider
       expect(account.accessToken).not.toBe("test-access-token");
       expect(account.refreshToken).not.toBe("test-refresh-token");
       const session = await getDatabase().session.findFirstOrThrow();
-      expect(session.expiresAt.getTime() - session.createdAt.getTime()).toBe(
-        7 * 24 * 60 * 60 * 1000,
-      );
+      // Better Auth reads the clock separately for expiry and creation.
+      const lifetime =
+        session.expiresAt.getTime() - session.createdAt.getTime();
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      expect(lifetime).toBeLessThanOrEqual(sevenDays);
+      expect(lifetime).toBeGreaterThanOrEqual(sevenDays - 1000);
       const identity = await auth.api.getSession({
         headers: new Headers({ Cookie: cookies(response) }),
         query: { disableCookieCache: true, disableRefresh: true },
@@ -833,5 +836,87 @@ describe("real Better Auth callback with isolated PostgreSQL and mocked provider
         new Headers({ Cookie: cookies(response) }),
       ),
     ).not.toBeNull();
+  });
+});
+
+describe("explicit additional authentication origins", () => {
+  const alternate = "https://collector.example:3001";
+  beforeEach(() => vi.stubEnv("AUTH_ADDITIONAL_ORIGINS", alternate));
+  it.each([baseURL, alternate])(
+    "uses matching OAuth callbacks and sessions for %s",
+    async (origin) => {
+      const response = await POST(
+        new Request(`${origin}/api/auth/sign-in/social`, {
+          method: "POST",
+          headers: { Origin: origin, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider: "google",
+            callbackURL: "/app",
+            errorCallbackURL: "/login",
+          }),
+        }),
+      );
+      expect(response.status).toBe(200);
+      const url = new URL((await response.json()).url);
+      expect(url.searchParams.get("redirect_uri")).toBe(
+        `${origin}/api/auth/callback/google`,
+      );
+      const callback = await GET(
+        new Request(
+          `${origin}/api/auth/callback/google?state=${url.searchParams.get("state")}&code=test-code`,
+          { headers: { Cookie: cookies(response) } },
+        ),
+      );
+      expect(callback.status).toBe(302);
+      expect(new URL(callback.headers.get("location")!, origin).href).toBe(
+        `${origin}/app`,
+      );
+      expect(
+        await getAuthenticatedIdentity(
+          new Headers({ Cookie: cookies(callback) }),
+        ),
+      ).not.toBeNull();
+    },
+  );
+  it("uses the configured external callback behind an internal Next.js listener", async () => {
+    const response = await POST(
+      new Request("http://0.0.0.0:3000/api/auth/sign-in/social", {
+        method: "POST",
+        headers: {
+          Host: "collector.example:3001",
+          Origin: alternate,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ provider: "google", callbackURL: "/app" }),
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(
+      new URL((await response.json()).url).searchParams.get("redirect_uri"),
+    ).toBe(`${alternate}/api/auth/callback/google`);
+  });
+  it("rejects unlisted request origins and forwarding-header spoofing", async () => {
+    const response = await POST(
+      new Request("https://evil.example/api/auth/sign-in/social", {
+        method: "POST",
+        headers: {
+          Origin: baseURL,
+          "Content-Type": "application/json",
+          "X-Forwarded-Host": "localhost:3002",
+        },
+        body: JSON.stringify({ provider: "google", callbackURL: "/app" }),
+      }),
+    );
+    expect(response.status).toBe(403);
+  });
+  it("rejects cross-origin sign-in even between configured origins", async () => {
+    const response = await POST(
+      new Request(`${alternate}/api/auth/sign-in/social`, {
+        method: "POST",
+        headers: { Origin: baseURL, "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: "google", callbackURL: "/app" }),
+      }),
+    );
+    expect(response.status).toBe(403);
   });
 });

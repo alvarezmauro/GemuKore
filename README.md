@@ -59,7 +59,9 @@ Complete these steps before using the private collection:
    by `S3_BUCKET` (default `gemukore-dev`). Keep it private. Startup does not create
    the development bucket.
 2. Configure Google and/or GitHub credentials in `.env.local`, with
-   `BETTER_AUTH_URL` set to the exact browser origin and a randomly generated
+   `BETTER_AUTH_URL` set to the canonical browser origin (optional additional
+   addresses use `AUTH_ADDITIONAL_ORIGINS`; see the authentication guide) and a
+   randomly generated
    `BETTER_AUTH_SECRET` of at least 32 characters. Register the matching callbacks
    in the [authentication guide](docs/operations/AUTHENTICATION.md). Empty provider
    pairs leave sign-in disabled; OAuth alone does not grant collection access.

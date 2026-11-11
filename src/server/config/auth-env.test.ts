@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { authEnvironmentSchema, configuredAuthEnvironment } from "./auth-env";
+import {
+  authEnvironmentSchema,
+  configuredAuthEnvironment,
+  authEnvironmentForOrigin,
+  authOriginForRequest,
+} from "./auth-env";
 
 const configured = {
   NODE_ENV: "test",
@@ -68,4 +73,79 @@ describe("auth configuration", () => {
       }).success,
     ).toBe(false);
   });
+});
+
+it("selects only exact configured origins", () => {
+  const env = configuredAuthEnvironment(
+    authEnvironmentSchema.parse({
+      ...configured,
+      AUTH_ADDITIONAL_ORIGINS:
+        "https://collector.example:3001,http://localhost:3001",
+    }),
+  )!;
+  expect(authEnvironmentForOrigin(env, "http://localhost:3001")?.baseURL).toBe(
+    "http://localhost:3001",
+  );
+  expect(
+    authEnvironmentForOrigin(env, "https://collector.example:3001")?.baseURL,
+  ).toBe("https://collector.example:3001");
+  for (const origin of [
+    "https://evil.example",
+    "http://collector.example:3001",
+    "http://localhost:3000",
+  ]) {
+    expect(authEnvironmentForOrigin(env, origin)).toBeNull();
+  }
+});
+it.each([
+  "https://*.example.com",
+  "https://example.com/login",
+  "http://example.com",
+  "https://user:pass@example.com",
+  "garbage",
+])("rejects unsafe additional origin %s", (origin) => {
+  expect(
+    authEnvironmentSchema.safeParse({
+      ...configured,
+      AUTH_ADDITIONAL_ORIGINS: origin,
+    }).success,
+  ).toBe(false);
+});
+it("rejects HTTP additional origins in production", () => {
+  expect(
+    authEnvironmentSchema.safeParse({
+      ...configured,
+      NODE_ENV: "production",
+      BETTER_AUTH_URL: "https://example.com",
+      AUTH_ADDITIONAL_ORIGINS: "http://localhost:3001",
+    }).success,
+  ).toBe(false);
+});
+
+it("maps proxy Host only to configured origins and ignores forwarding headers", () => {
+  const env = configuredAuthEnvironment(
+    authEnvironmentSchema.parse({
+      ...configured,
+      AUTH_ADDITIONAL_ORIGINS: "https://collector.example:3001",
+    }),
+  )!;
+  expect(
+    authOriginForRequest(
+      env,
+      new Request("http://0.0.0.0:3000/api/auth/callback/google", {
+        headers: { Host: "collector.example:3001" },
+      }),
+    ),
+  ).toBe("https://collector.example:3001");
+  expect(
+    authOriginForRequest(
+      env,
+      new Request("http://0.0.0.0:3000/api/auth/callback/google", {
+        headers: {
+          Host: "evil.example",
+          "X-Forwarded-Host": "collector.example:3001",
+        },
+      }),
+    ),
+  ).toBeNull();
 });

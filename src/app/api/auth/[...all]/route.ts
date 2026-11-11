@@ -1,4 +1,6 @@
 import { toNextJsHandler } from "better-auth/next-js";
+import { getAuthEnv } from "@/server/config/env";
+import { authOriginForRequest } from "@/server/config/auth-env";
 import { getAuth } from "@/server/auth";
 import { withLogContext } from "@/server/observability/events";
 
@@ -6,7 +8,20 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function handle(request: Request) {
-  const auth = getAuth();
+  const env = getAuthEnv();
+  const origin = env ? authOriginForRequest(env, request) : null;
+  if (env && !origin)
+    return Response.json(
+      { code: "INVALID_ORIGIN", message: "Invalid request origin." },
+      {
+        status: 403,
+        headers: {
+          "Cache-Control": "private, no-store",
+          "Referrer-Policy": "no-referrer",
+        },
+      },
+    );
+  const auth = getAuth(origin ?? undefined);
   if (!auth)
     return Response.json(
       { error: "Sign-in is not configured." },
