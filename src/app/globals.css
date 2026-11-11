@@ -273,3 +273,47 @@
     translate: var(--sheet-x) var(--sheet-y);
   }
 }
+
+/* A quiet hardware silhouette gives the dashboard a gaming identity without
+   competing with collection artwork or requiring motion/JavaScript. */
+@layer components {
+  .dashboard-hero {
+    background: linear-gradient(120deg, var(--card) 35%, var(--stone));
+    padding-block: 2rem;
+  }
+  .dashboard-controller {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 12rem;
+    height: 12rem;
+    color: var(--muted-foreground);
+    transform: rotate(-15deg);
+  }
+  .dashboard-controller > svg {
+    position: relative;
+    z-index: 1;
+    width: 10rem;
+    height: 10rem;
+    filter: drop-shadow(0 12px 0 var(--border));
+  }
+  .dashboard-controller-orbit {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--input);
+    border-radius: 50%;
+  }
+  .dashboard-controller-orbit::after {
+    content: "";
+    position: absolute;
+    inset: 1rem;
+    border: 1px dashed var(--input);
+    border-radius: 50%;
+  }
+  @media (max-width: 1279px) {
+    .dashboard-controller {
+      display: none;
+    }
+  }
+}

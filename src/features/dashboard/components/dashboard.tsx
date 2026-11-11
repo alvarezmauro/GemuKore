@@ -7,6 +7,9 @@ import {
   Package,
   Wrench,
   ArrowUpRight,
+  ArrowRight,
+  Plus,
+  Crosshair,
 } from "lucide-react";
 import { BentoGrid, BentoCard } from "@/components/magic/bento-grid";
 import { NumberTicker } from "@/components/magic/number-ticker";
@@ -38,14 +41,17 @@ export function Dashboard({ data: d }: { data: DashboardData }) {
     <div className="min-w-0 space-y-8 [overflow-wrap:anywhere] [&_a]:max-w-full [&_a]:whitespace-normal [&_button]:h-auto [&_button]:min-h-11 [&_button]:max-w-full [&_button]:whitespace-normal">
       <PageHeader
         title="Your collection"
-        description="A little overview of the physical games, consoles and accessories you keep."
+        description="Your games. Your hardware. Your own little piece of gaming history."
         action={
-          <Button asChild variant="outline">
-            <Link href="/app/collection">Browse collection</Link>
+          <Button asChild>
+            <Link href="/app/collection">
+              Browse collection{" "}
+              <ArrowRight aria-hidden="true" className="size-4" />
+            </Link>
           </Button>
         }
       />
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border px-4 py-3">
         <Badge variant="secondary">
           {d.role === "ADMIN"
             ? "Administrator"
@@ -56,63 +62,107 @@ export function Dashboard({ data: d }: { data: DashboardData }) {
         <p className="text-sm text-muted-foreground">
           Private collection overview
         </p>
-        <RefreshOverview />
+        <div className="ml-auto">
+          <RefreshOverview />
+        </div>
       </div>
       <BentoGrid aria-label="Collection overview">
         <BentoCard
           aria-labelledby="dashboard-total"
-          className="sm:col-span-2 xl:col-span-3"
+          className="dashboard-hero relative overflow-hidden sm:col-span-2 xl:col-span-3"
         >
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div>
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-8">
+            <div className="max-w-lg space-y-5">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Crosshair className="size-4" aria-hidden="true" />
+                Collection headquarters
+              </div>
+              <h2 className="font-heading text-3xl leading-tight tracking-tight sm:text-4xl">
+                A home for every
+                <br />
+                era of play.
+              </h2>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                From the first cartridge to your latest find. Keep the physical
+                pieces of your gaming story together.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {d.canManage && (
+                  <Button asChild>
+                    <Link href="/app/games/new">
+                      <Plus className="size-4" aria-hidden="true" />
+                      Add game
+                    </Link>
+                  </Button>
+                )}
+                <Button asChild variant="outline">
+                  <Link href="/app/collection?sort=newest">
+                    Explore collection
+                    <ArrowUpRight className="size-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div className="dashboard-controller" aria-hidden="true">
+              <Gamepad2 strokeWidth={1} />
+              <span className="dashboard-controller-orbit" />
+            </div>
+            <div className="w-full border-t border-border pt-5 sm:w-auto sm:min-w-40 sm:border-t-0 sm:border-l sm:pl-8">
               <h2
                 id="dashboard-total"
-                className="flex items-center gap-2 text-base font-medium"
+                className="flex items-center gap-2 text-sm font-medium"
               >
-                <Layers className="size-5" aria-hidden="true" />
+                <Layers className="size-4" aria-hidden="true" />
                 Total items
               </h2>
-              <p className="mt-3 font-heading text-5xl tracking-tight sm:text-6xl">
+              <p className="my-3 font-heading text-6xl tracking-tight sm:text-7xl">
                 <NumberTicker value={d.counts.total} />
               </p>
-              <p className="mt-3 max-w-prose text-sm text-muted-foreground">
+              <p className="max-w-48 text-sm text-muted-foreground">
                 Each owned copy counts once, including copies of the same
                 catalog item.
-              </p>
-            </div>
-            <div className="max-w-sm space-y-2">
-              <p className="font-heading text-xl">
-                Room for every part of your collection.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Explore what you own, revisit recent additions, or record your
-                next find.
               </p>
             </div>
           </div>
         </BentoCard>
         {categories.map(({ key, label, type, Icon }) => (
-          <BentoCard key={key} aria-labelledby={`dashboard-${key}`}>
-            <h2
-              id={`dashboard-${key}`}
-              className="flex items-center gap-2 font-medium"
-            >
-              <Icon className="size-5" aria-hidden="true" />
-              {label}
-            </h2>
-            <p className="font-heading text-4xl">
-              <NumberTicker value={d.counts[key]} />
-            </p>
-            <Link
-              className="inline-flex min-h-11 items-center gap-2 text-sm text-link underline underline-offset-4"
-              href={`/app/collection?type=${type}`}
-            >
-              Browse {label.toLowerCase()}
-              <ArrowUpRight aria-hidden="true" className="size-4 shrink-0" />
-            </Link>
+          <BentoCard
+            key={key}
+            aria-labelledby={`dashboard-${key}`}
+            className="dashboard-category relative overflow-hidden border border-border"
+          >
+            <Icon
+              className="pointer-events-none absolute -right-4 top-8 size-28 text-muted"
+              strokeWidth={1}
+              aria-hidden="true"
+            />
+            <div className="relative space-y-3">
+              <h2
+                id={`dashboard-${key}`}
+                className="flex items-center gap-2 font-medium"
+              >
+                <span className="flex size-10 items-center justify-center rounded-lg bg-stone">
+                  <Icon className="size-5" aria-hidden="true" />
+                </span>
+                {label}
+              </h2>
+              <p className="relative font-heading text-4xl tracking-tight">
+                <NumberTicker value={d.counts[key]} />
+              </p>
+              <Link
+                className="relative inline-flex min-h-11 items-center gap-2 text-sm font-medium hover:underline underline-offset-4"
+                href={`/app/collection?type=${type}`}
+              >
+                Browse {label.toLowerCase()}
+                <ArrowUpRight aria-hidden="true" className="size-4 shrink-0" />
+              </Link>
+            </div>
           </BentoCard>
         ))}
-        <BentoCard aria-labelledby="dashboard-boxed">
+        <BentoCard
+          aria-labelledby="dashboard-boxed"
+          className="border border-border"
+        >
           <h2
             id="dashboard-boxed"
             className="flex items-center gap-2 font-medium"
@@ -120,7 +170,7 @@ export function Dashboard({ data: d }: { data: DashboardData }) {
             <Package className="size-5" aria-hidden="true" />
             Boxed items
           </h2>
-          <p className="font-heading text-4xl">
+          <p className="relative font-heading text-4xl tracking-tight">
             <NumberTicker value={d.counts.boxed} />
           </p>
           <p className="text-sm text-muted-foreground">
@@ -136,7 +186,7 @@ export function Dashboard({ data: d }: { data: DashboardData }) {
         </BentoCard>
         <BentoCard
           aria-labelledby="dashboard-defects"
-          className="xl:col-span-2"
+          className="border border-border xl:col-span-2"
         >
           <h2
             id="dashboard-defects"
@@ -145,7 +195,7 @@ export function Dashboard({ data: d }: { data: DashboardData }) {
             <Wrench className="size-5" aria-hidden="true" />
             Items with active defects
           </h2>
-          <p className="font-heading text-4xl">
+          <p className="relative font-heading text-4xl tracking-tight">
             <NumberTicker value={d.counts.activeDefects} />
           </p>
           <p className="text-sm text-muted-foreground">
@@ -208,21 +258,23 @@ export function Dashboard({ data: d }: { data: DashboardData }) {
             }))}
           />
         ) : (
-          <EmptyState
-            title="Your collection starts here"
-            description={
-              d.canManage
-                ? "Add your first physical copy to see your collection take shape."
-                : "No physical copies have been added yet. An editor can add the first item."
-            }
-            action={
-              d.canManage ? (
-                <Button asChild>
-                  <Link href="/app/games/new">Add your first game</Link>
-                </Button>
-              ) : undefined
-            }
-          />
+          <div className="rounded-xl border border-dashed border-input bg-card px-4 py-8">
+            <EmptyState
+              title="Your collection starts here"
+              description={
+                d.canManage
+                  ? "Add your first physical copy to see your collection take shape."
+                  : "No physical copies have been added yet. An editor can add the first item."
+              }
+              action={
+                d.canManage ? (
+                  <Button asChild>
+                    <Link href="/app/games/new">Add your first game</Link>
+                  </Button>
+                ) : undefined
+              }
+            />
+          </div>
         )}
       </section>
       <section
