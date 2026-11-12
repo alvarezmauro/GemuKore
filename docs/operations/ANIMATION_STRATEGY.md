@@ -16,6 +16,8 @@ Task 2.3 establishes reusable presentation patterns for the design in [DESIGN.md
 
 CSS owns simple entries, hover and Radix surface transitions in `src/app/globals.css`. The owned shadcn Dialog and Sheet retain their functional behavior. The adapted Magic UI Blur Fade provides a selective presentation effect. Motion owns list position changes and shared card/detail media. No additional library or dependency was introduced.
 
+The user-requested Framer hamburger match is a scoped timing exception: `HamburgerIcon` in `src/components/ui/hamburger-icon.tsx` reproduces the [reference](https://www.framer.com/marketplace/components/hamburger-menu/)'s SVG paths, rounded 3-unit strokes, dash interpolation and −45° rotation, with 600ms `cubic-bezier(0.4, 0, 0.2, 1)` transitions. Its 32-unit viewBox scales to the existing 44px control and inherits accessible theme color. Desktop and mobile use their actual Radix open state. The desktop dropdown is nonmodal so the same trigger can toggle it closed; mobile retains the modal sheet and its focus trap. CSS `@starting-style` lets the close icon morph when mounted inside the sheet. Live reduced motion removes interpolation while retaining the open-state rotation; no animation delays interaction or dismissal.
+
 ## Reusable patterns
 
 | Pattern          | API/location                                                                              | Usage                                                                                                                                                                                                                                                                                                                                                  |

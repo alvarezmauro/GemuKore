@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HamburgerIcon } from "@/components/ui/hamburger-icon";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -41,13 +42,14 @@ export function MobileNavigation({
           variant="ghost"
           size="icon"
           aria-label="Open navigation"
-          className="lg:hidden"
+          className="hamburger-button lg:hidden"
         >
-          <Menu aria-hidden="true" />
+          <HamburgerIcon open={open} />
         </Button>
       </SheetTrigger>
       <SheetContent
         side="left"
+        showCloseButton={false}
         className="w-[min(320px,calc(100%-24px))]!"
         onCloseAutoFocus={(event) => {
           if (window.matchMedia(desktopQuery).matches) {
@@ -64,6 +66,16 @@ export function MobileNavigation({
         <div className="px-4 pb-6">
           <Navigation items={items} onNavigate={() => setOpen(false)} />
         </div>
+        <SheetClose asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hamburger-button absolute top-3 right-3"
+            aria-label="Close"
+          >
+            <HamburgerIcon open={open} />
+          </Button>
+        </SheetClose>
       </SheetContent>
     </Sheet>
   );

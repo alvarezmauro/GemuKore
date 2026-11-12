@@ -39,11 +39,20 @@ test("compact navigation traps focus, closes with Escape and closes after naviga
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/design-preview");
   const trigger = page.getByRole("button", { name: "Open navigation" });
+  const icon = trigger.locator("svg");
+  await expect(icon).toHaveAttribute("data-state", "closed");
   await trigger.focus();
   await page.keyboard.press("Enter");
   const dialog = page.getByRole("dialog", { name: "GemuKore" });
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveCSS("animation-name", "none");
+  const close = dialog.getByRole("button", { name: "Close", exact: true });
+  await expect(close.locator("svg")).toHaveAttribute("data-state", "open");
+  await expect(close.locator("svg")).toHaveCSS("transition-duration", "0s");
+  await expect(close.locator("path").first()).toHaveCSS(
+    "transition-duration",
+    "0s",
+  );
   // Radix deliberately focuses the close control rather than a navigation link.
   await expect(
     dialog.getByRole("button", { name: "Close", exact: true }),
@@ -57,6 +66,11 @@ test("compact navigation traps focus, closes with Escape and closes after naviga
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();
+  await expect(icon).toHaveAttribute("data-state", "closed");
+  await trigger.click();
+  await close.click();
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
   await trigger.click();
   await dialog.getByRole("link", { name: "Forms", exact: true }).click();
   await expect(dialog).toHaveCount(0);
@@ -64,6 +78,66 @@ test("compact navigation traps focus, closes with Escape and closes after naviga
   await expect(
     page.getByRole("heading", { name: "Simple, readable forms" }),
   ).toBeInViewport();
+});
+
+test("workspace hamburger morph follows toggle, dismissal, navigation and live reduced motion", async ({
+  page,
+}, info) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/design-preview");
+  const trigger = page.getByRole("button", { name: "Workspace menu" });
+  const icon = trigger.locator("svg");
+  const outerLine = icon.locator("path").first();
+  const menu = page.getByRole("menu", { name: "Workspace menu" });
+  await expect(icon).toHaveCSS("transition-duration", "0.6s");
+  await expect(icon).toHaveCSS(
+    "transition-timing-function",
+    "cubic-bezier(0.4, 0, 0.2, 1)",
+  );
+  await expect(icon).toHaveAttribute("data-state", "closed");
+  await page.screenshot({ path: info.outputPath("hamburger-closed.png") });
+  await trigger.click();
+  await expect(menu).toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await expect(trigger).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(icon).toHaveCSS(
+    "transform",
+    "matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)",
+  );
+  await expect(outerLine).toHaveCSS("stroke-dasharray", "20px, 300px");
+  await expect(outerLine).toHaveCSS("stroke-dashoffset", "-32.42px");
+  await page.screenshot({ path: info.outputPath("hamburger-open.png") });
+  // The same control remains clickable while the menu is open.
+  await trigger.click();
+  await expect(menu).toHaveCount(0);
+  await expect(icon).toHaveAttribute("data-state", "closed");
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(menu).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(icon).toHaveAttribute("data-state", "closed");
+  await trigger.click();
+  await page
+    .getByRole("heading", { name: "GemuKore", level: 1, exact: true })
+    .click();
+  await expect(menu).toHaveCount(0);
+  await expect(icon).toHaveAttribute("data-state", "closed");
+  await trigger.click();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(icon).toHaveCSS("transition-duration", "0s");
+  await expect(outerLine).toHaveCSS("transition-duration", "0s");
+  // Reducing motion keeps the close shape while stopping interpolation.
+  await expect(icon).toHaveCSS(
+    "transform",
+    "matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)",
+  );
+  await menu.getByRole("menuitem", { name: "Forms", exact: true }).click();
+  await expect(menu).toHaveCount(0);
+  await expect(page).toHaveURL(/#forms$/);
+  await expect(icon).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
 });
 
 test("small screens and zoom-sized layouts stay usable in both themes", async ({

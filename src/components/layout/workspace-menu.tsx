@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Plus, Gamepad2, Disc3, Cable } from "lucide-react";
+import { useState } from "react";
+import { Plus, Gamepad2, Disc3, Cable } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HamburgerIcon } from "@/components/ui/hamburger-icon";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -14,16 +16,17 @@ import {
 import type { NavigationItem } from "./navigation";
 
 export function WorkspaceMenu({ items }: { items: readonly NavigationItem[] }) {
+  const [open, setOpen] = useState(false);
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
           aria-label="Workspace menu"
-          className="rail-menu-button"
+          className="hamburger-button rail-menu-button"
         >
-          <Menu aria-hidden="true" />
+          <HamburgerIcon open={open} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" sideOffset={16}>

@@ -61,10 +61,6 @@
 .rail-menu-button {
   flex-shrink: 0;
 }
-.rail-menu-button svg {
-  width: 1.65rem;
-  height: 1.65rem;
-}
 .rail-navigation {
   display: flex;
   flex-direction: column;

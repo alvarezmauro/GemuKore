@@ -2188,6 +2188,16 @@ Original refresh verification: lint, typecheck, production builds, repository fo
 
 ---
 
+## TASK 17.4 — Reference hamburger menu
+
+Authorized directly by the user's 2026-11-11 request to match [Danyal Asif's Framer Hamburger Menu](https://www.framer.com/marketplace/components/hamburger-menu/) exactly in style and animation. This is a scoped follow-up to Tasks 2.2, 2.3 and 17.3.
+
+Status: **Completed 2026-11-11.** Inspected the live preview's rendered SVG and both interaction states. Added a shared icon with the same paths, rounded 3-unit strokes, dash interpolation, −45° rotation and 600ms `cubic-bezier(0.4, 0, 0.2, 1)` transitions. Desktop and mobile controls retain the application's 44px target and inherit theme colors; transparent hover/open backgrounds match the reference treatment. The icon follows actual Radix state, with a nonmodal desktop dropdown allowing the same control to close it and the existing modal mobile sheet retaining focus trapping/restoration. The sheet's close icon morphs on mount. Live reduced motion switches immediately to the correct shape. Updated `DESIGN.md` and the animation strategy with the explicitly requested timing exception. No dependencies, business logic, data access, schema, authorization or provider changes.
+
+Verification: lint, typecheck, production builds, changed-file formatting and whitespace checks pass; all 1,493 unit/component tests and 20 selected desktop/mobile design-system/motion browser checks pass. The final transparent-background refinement also passes a fresh production build and all 14 design-system browser cases. Browser coverage includes computed rotation/dashes/timing, repeated trigger toggling, Escape/outside/link dismissal, mobile close activation, focus trapping/restoration, desktop breakpoint changes, both themes, narrow layouts and live reduced motion. Reviewed desktop closed/open and mobile sheet screenshots; the isolated preview reports no browser errors. Standalone PostgreSQL integration suites were not repeated for this presentation-only change.
+
+---
+
 # PHASE 18 — Public Collection / Digital Museum
 
 All Phase 18 tasks follow the [Public Privacy Architecture](docs/architecture/PUBLIC_PRIVACY_ARCHITECTURE.md). Its implementation handoff assigns prerequisite publication/settings commands and writer coordination to Task 18.2, private administrator settings/review controls to Task 18.3, contextual public media/component approval completion to Task 18.5, and indexing/review work to Tasks 18.6–18.7. Expose only capabilities whose applicable gates are implemented and verified; public defaults remain disabled during development.
