@@ -3,7 +3,8 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-export function RefreshOverview() {
+import { RefreshCw } from "lucide-react";
+export function RefreshOverview({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   return (
@@ -18,10 +19,12 @@ export function RefreshOverview() {
     >
       <Button
         type="submit"
-        variant="outline"
+        variant={compact ? "ghost" : "outline"}
+        className={compact ? "dashboard-refresh" : undefined}
         disabled={pending}
         aria-busy={pending}
       >
+        {compact && <RefreshCw aria-hidden="true" />}
         {pending ? "Refreshing…" : "Refresh overview"}
       </Button>
       {pending && (

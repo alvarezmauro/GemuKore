@@ -256,3 +256,128 @@ test("dashboard remains complete without JavaScript and keeps image failures loc
     await noJs.close();
   }
 });
+
+test("reference dashboard fits desktop viewports and its carousel reaches every copy", async ({
+  page,
+  context,
+}, info) => {
+  await signIn(context, "ADMIN");
+  await fixture("seed-dashboard");
+  await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
+  await page.goto("/app");
+  await expect(page.locator(".application-shell")).toHaveCSS(
+    "border-radius",
+    "0px",
+  );
+  for (const viewport of [
+    { width: 1024, height: 640 },
+    { width: 1280, height: 640 },
+    { width: 1366, height: 650 },
+    { width: 1024, height: 704 },
+    { width: 1280, height: 720 },
+    { width: 1366, height: 768 },
+    { width: 1440, height: 900 },
+    { width: 1512, height: 982 },
+    { width: 1920, height: 1080 },
+    { width: 2560, height: 1440 },
+    { width: 3440, height: 1440 },
+  ]) {
+    await page.setViewportSize(viewport);
+    const fit = await page.evaluate(() => ({
+      pageHeight: document.documentElement.scrollHeight,
+      pageWidth: document.documentElement.scrollWidth,
+      height: innerHeight,
+      width: innerWidth,
+      shell: (() => {
+        const { x, y, width, height } = document
+          .querySelector(".application-shell")!
+          .getBoundingClientRect();
+        return { x, y, width, height };
+      })(),
+      footerBottom: document
+        .querySelector(".dashboard-footer")!
+        .getBoundingClientRect().bottom,
+      statsBottom: document
+        .querySelector(".stats-panel")!
+        .getBoundingClientRect().bottom,
+      heroControlsFit: [
+        ...document.querySelectorAll(".hero-tabs, .hero-item-count"),
+      ].every((control) => {
+        const rect = control.getBoundingClientRect();
+        const hero = document
+          .querySelector(".collection-hero")!
+          .getBoundingClientRect();
+        return rect.top >= hero.top && rect.bottom <= hero.bottom;
+      }),
+    }));
+    expect(
+      fit.pageHeight,
+      `${viewport.width} × ${viewport.height} height`,
+    ).toBeLessThanOrEqual(fit.height);
+    expect(fit.pageWidth).toBeLessThanOrEqual(fit.width);
+    expect(fit.shell).toEqual({
+      x: 0,
+      y: 0,
+      width: fit.width,
+      height: fit.height,
+    });
+    expect(fit.footerBottom).toBeLessThanOrEqual(fit.height);
+    expect(fit.statsBottom).toBeLessThanOrEqual(fit.footerBottom);
+    expect(
+      fit.heroControlsFit,
+      `${viewport.width} × ${viewport.height} hero controls`,
+    ).toBe(true);
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect
+    .poll(() =>
+      page
+        .locator(".collection-hero-art")
+        .evaluate(
+          (img: HTMLImageElement) => img.complete && img.naturalWidth > 0,
+        ),
+    )
+    .toBe(true);
+  await page.screenshot({
+    path: info.outputPath("dashboard-reference-desktop.png"),
+    fullPage: true,
+  });
+  const recent = page.getByRole("list", { name: "Recently added copies" });
+  const last = recent.getByRole("link").last();
+  const next = page.getByRole("button", {
+    name: "Next additions",
+    exact: true,
+  });
+  for (let step = 0; step < 8 && (await next.isEnabled()); step++)
+    await next.click();
+  await expect(last).toBeInViewport({ ratio: 0.9 });
+  await expect(next).toBeDisabled();
+  await page
+    .getByRole("button", { name: "Previous additions", exact: true })
+    .click();
+  await expect(next).toBeEnabled();
+  await last.focus();
+  await expect(last).toBeInViewport({ ratio: 0.9 });
+  await expect(page.locator(".dashboard-enter").first()).toHaveCSS(
+    "animation-name",
+    "none",
+  );
+  await expect(page.locator(".stats-orbit")).toHaveCSS(
+    "animation-name",
+    "none",
+  );
+  await page.getByRole("button", { name: "Add item", exact: true }).click();
+  await expect(
+    page.getByRole("menuitem", { name: "Add console", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "Add game", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "Add accessory", exact: true }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "Add item", exact: true }),
+  ).toBeFocused();
+});

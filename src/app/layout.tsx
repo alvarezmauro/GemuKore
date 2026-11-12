@@ -21,6 +21,13 @@ const jakarta = localFont({
   display: "swap",
   fallback: ["Arial", "Helvetica", "sans-serif"],
 });
+const pixel = localFont({
+  src: "./fonts/pixelify-sans.ttf",
+  weight: "400 600",
+  variable: "--font-pixel",
+  display: "swap",
+  fallback: ["monospace"],
+});
 
 export const metadata: Metadata = {
   title: "GemuKore",
@@ -34,7 +41,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jakarta.variable}`}
+      className={`${inter.variable} ${jakarta.variable} ${pixel.variable}`}
       suppressHydrationWarning
     >
       <body style={motionCssVariables}>

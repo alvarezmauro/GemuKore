@@ -1,33 +1,35 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./workspace.css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #121212;
-  --card: #fbfaf9;
-  --card-foreground: #121212;
-  --popover: #ffffff;
-  --popover-foreground: #121212;
-  --heading: #343433;
-  --body: #474645;
-  --muted: #f6f4ef;
-  --muted-foreground: #69655f;
-  --primary: #171717;
+  --background: #fce6ed;
+  --foreground: #401426;
+  --card: #fff4f7;
+  --card-foreground: #401426;
+  --popover: #fff4f7;
+  --popover-foreground: #401426;
+  --heading: #401426;
+  --body: #643348;
+  --muted: #f5d5e1;
+  --muted-foreground: #79405b;
+  --primary: #b91e4e;
   --primary-foreground: #ffffff;
-  --secondary: #f6f4ef;
-  --secondary-foreground: #121212;
-  --accent: #eae6dd;
-  --accent-foreground: #121212;
-  --border: #efedea;
-  --input: #8e8881;
-  --ring: #205ecb;
-  --link: #205ecb;
-  --destructive: #b42318;
-  --stone: #f2ebe0;
-  --radius: 0.75rem;
+  --secondary: #f5d5e1;
+  --secondary-foreground: #401426;
+  --accent: #efc1d3;
+  --accent-foreground: #401426;
+  --border: #e9bdcd;
+  --input: #a85b78;
+  --ring: #ad1749;
+  --link: #a51c49;
+  --destructive: #ad1538;
+  --stone: #f2d6e2;
+  --page-surround: #fbdae4;
+  --radius: 1.25rem;
   --sidebar: var(--card);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
@@ -39,28 +41,29 @@
 }
 
 .dark {
-  --background: #16151a;
-  --foreground: #f6f4ef;
-  --card: #1f1e24;
-  --card-foreground: #f6f4ef;
-  --popover: #1f1e24;
-  --popover-foreground: #f6f4ef;
-  --heading: #ecebe8;
-  --body: #c9c6c1;
-  --muted: #2a2930;
-  --muted-foreground: #aca6a0;
-  --primary: #f6f4ef;
-  --primary-foreground: #16151a;
-  --secondary: #2a2930;
-  --secondary-foreground: #f6f4ef;
-  --accent: #35343c;
-  --accent-foreground: #f6f4ef;
-  --border: #2c2b31;
-  --input: #746f79;
-  --ring: #6aa6ff;
-  --link: #6aa6ff;
-  --destructive: #ff8a80;
-  --stone: #2a2830;
+  --background: #2d101e;
+  --foreground: #fff1f6;
+  --card: #3c1729;
+  --card-foreground: #fff1f6;
+  --popover: #351222;
+  --popover-foreground: #fff1f6;
+  --heading: #fff3f8;
+  --body: #efd6e3;
+  --muted: #50203a;
+  --muted-foreground: #d9b1c9;
+  --primary: #ffb4cb;
+  --primary-foreground: #351222;
+  --secondary: #50203a;
+  --secondary-foreground: #fff1f6;
+  --accent: #652b49;
+  --accent-foreground: #fff1f6;
+  --border: #74334f;
+  --input: #b87693;
+  --ring: #ffc35c;
+  --link: #ffb4cb;
+  --destructive: #ffadbc;
+  --stone: #4d243d;
+  --page-surround: #240c19;
   --sidebar: var(--card);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
@@ -74,6 +77,7 @@
 @theme inline {
   --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
   --font-heading: var(--font-jakarta), Arial, Helvetica, sans-serif;
+  --font-retro: var(--font-pixel), monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -120,7 +124,16 @@
     scroll-padding-top: 6rem;
   }
   body {
-    @apply bg-background text-foreground text-base leading-6;
+    @apply text-foreground text-base leading-6;
+    background:
+      radial-gradient(
+        ellipse at 50% 20%,
+        color-mix(in srgb, var(--page-surround), white 18%),
+        transparent 80%
+      ),
+      var(--page-surround);
+    min-height: 100svh;
+    display: flow-root;
     margin: 0;
   }
   h1,
@@ -271,49 +284,5 @@
   }
   to {
     translate: var(--sheet-x) var(--sheet-y);
-  }
-}
-
-/* A quiet hardware silhouette gives the dashboard a gaming identity without
-   competing with collection artwork or requiring motion/JavaScript. */
-@layer components {
-  .dashboard-hero {
-    background: linear-gradient(120deg, var(--card) 35%, var(--stone));
-    padding-block: 2rem;
-  }
-  .dashboard-controller {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 12rem;
-    height: 12rem;
-    color: var(--muted-foreground);
-    transform: rotate(-15deg);
-  }
-  .dashboard-controller > svg {
-    position: relative;
-    z-index: 1;
-    width: 10rem;
-    height: 10rem;
-    filter: drop-shadow(0 12px 0 var(--border));
-  }
-  .dashboard-controller-orbit {
-    position: absolute;
-    inset: 0;
-    border: 1px solid var(--input);
-    border-radius: 50%;
-  }
-  .dashboard-controller-orbit::after {
-    content: "";
-    position: absolute;
-    inset: 1rem;
-    border: 1px dashed var(--input);
-    border-radius: 50%;
-  }
-  @media (max-width: 1279px) {
-    .dashboard-controller {
-      display: none;
-    }
   }
 }

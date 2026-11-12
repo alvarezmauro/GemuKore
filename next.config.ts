@@ -36,7 +36,12 @@ const nextConfig: NextConfig = {
   },
   // Revocable contextual media must never enter the optimizer's shared cache,
   // including direct requests that bypass our unoptimized Image components.
-  images: { localPatterns: [{ pathname: "/brand/**", search: "" }] },
+  images: {
+    localPatterns: [
+      { pathname: "/brand/**", search: "" },
+      { pathname: "/images/dashboard/reference-art.png", search: "" },
+    ],
+  },
   // Policy-dependent metadata must resolve in the head before content streams.
   htmlLimitedBots: /.*/,
   serverExternalPackages: ["gltf-validator"],

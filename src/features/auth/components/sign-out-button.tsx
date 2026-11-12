@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 import { authClient } from "../client";
 
-export function SignOutButton() {
+export function SignOutButton({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -26,11 +27,23 @@ export function SignOutButton() {
     <div className="space-y-3">
       <Button
         variant="outline"
+        size={compact ? "icon" : "default"}
+        className={compact ? "workspace-icon-button" : undefined}
         type="button"
+        aria-label={
+          compact ? (pending ? "Signing out…" : "Sign out") : undefined
+        }
+        title={compact ? "Sign out" : undefined}
         disabled={pending}
         onClick={() => void signOut()}
       >
-        {pending ? "Signing out…" : "Sign out"}
+        {compact ? (
+          <LogOut aria-hidden="true" />
+        ) : pending ? (
+          "Signing out…"
+        ) : (
+          "Sign out"
+        )}
       </Button>
       {failed && (
         <p role="alert" className="text-sm text-destructive">

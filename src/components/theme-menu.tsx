@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function ThemeMenu() {
+export function ThemeMenu({ compact = false }: { compact?: boolean }) {
   const { theme, setTheme } = useTheme();
 
   return (
@@ -22,11 +22,12 @@ export function ThemeMenu() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="min-h-11"
+          size={compact ? "icon" : "default"}
+          className={compact ? "workspace-icon-button" : "min-h-11"}
           aria-label="Choose theme"
         >
           <SunMoon aria-hidden="true" />
-          Theme
+          {!compact && "Theme"}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

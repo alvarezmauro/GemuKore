@@ -2,55 +2,73 @@ import type { ReactNode } from "react";
 import { ThemeMenu } from "@/components/theme-menu";
 import { Navigation, type NavigationItem } from "./navigation";
 import { MobileNavigation } from "./mobile-navigation";
+import Link from "next/link";
+import { Gamepad2 } from "lucide-react";
+import { WorkspaceMenu } from "./workspace-menu";
 
 export function ApplicationShell({
   children,
   items,
   context,
   headerActions,
+  dashboard = false,
+  railAction,
 }: {
   children: ReactNode;
   items: readonly NavigationItem[];
   context: string;
   headerActions?: ReactNode;
+  dashboard?: boolean;
+  railAction?: ReactNode;
 }) {
   return (
-    <>
+    <div className="application-shell" data-dashboard={dashboard || undefined}>
       <a
         href="#main-content"
         className="sr-only fixed top-3 left-3 z-50 rounded-lg bg-background px-4 py-3 focus:not-sr-only"
       >
         Skip to content
       </a>
-      <aside className="fixed inset-y-0 left-0 hidden w-62 flex-col gap-8 overflow-y-auto bg-sidebar p-6 text-sidebar-foreground lg:flex">
-        <div>
-          <p className="font-heading text-2xl font-medium tracking-tight">
-            GemuKore
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">{context}</p>
-        </div>
-        <Navigation items={items} />
-        <p className="mt-auto text-sm text-muted-foreground">
-          A home for your collection.
-        </p>
+      <aside className="workspace-rail">
+        <WorkspaceMenu items={items} />
+        <Navigation items={items} compact />
+        {railAction && <div className="rail-action">{railAction}</div>}
       </aside>
-      <div className="min-w-0 lg:ml-62">
-        <header className="sticky top-0 z-30 flex min-h-20 flex-wrap items-center justify-between gap-3 border-b bg-background px-4 sm:px-6 lg:px-8">
-          <div className="flex min-w-0 items-center gap-2">
+      <div className="workspace-body">
+        <header className="workspace-header">
+          <div className="workspace-identity">
             <MobileNavigation items={items} context={context} />
-            <p className="truncate text-sm font-medium lg:text-base">
-              {context}
+            <Link
+              href="/app"
+              className="workspace-brand"
+              aria-label="GemuKore home"
+            >
+              <Gamepad2 aria-hidden="true" />
+              <span>GemuKore</span>
+            </Link>
+            <p className="workspace-greeting">
+              {dashboard ? (
+                <>
+                  Welcome back, <strong>collector.</strong>
+                </>
+              ) : (
+                context
+              )}
             </p>
           </div>
-          <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
+          <div className="workspace-header-actions">
             {headerActions}
-            <ThemeMenu />
+            <ThemeMenu compact />
           </div>
         </header>
-        <main id="main-content" tabIndex={-1} className="outline-none">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="workspace-main outline-none"
+        >
           {children}
         </main>
       </div>
-    </>
+    </div>
   );
 }

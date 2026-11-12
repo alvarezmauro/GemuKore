@@ -58,25 +58,42 @@ const destinations = [
   { title: "Manage photos", href: "/app/media" },
 ];
 
-export function PaletteTrigger({ compact = false }: { compact?: boolean }) {
+export function PaletteTrigger({
+  compact = false,
+  dashboard = false,
+}: {
+  compact?: boolean;
+  dashboard?: boolean;
+}) {
   const open = useContext(PaletteContext);
   if (!open) return null;
   return (
     <Button
       variant="outline"
       size={compact ? "icon" : "default"}
-      aria-label="Open command palette"
+      aria-label={
+        dashboard
+          ? "Search your collection ⌘ K — Open command palette"
+          : "Open command palette"
+      }
       aria-haspopup="dialog"
+      className={dashboard ? "workspace-search" : undefined}
       onClick={(event) => open(event.currentTarget)}
     >
       <Search aria-hidden="true" />
-      {!compact && (
+      {dashboard ? (
         <>
-          Quick search{" "}
-          <kbd className="ml-2 hidden text-xs text-muted-foreground sm:inline">
-            ⌘K / Ctrl+K
-          </kbd>
+          <span>Search your collection</span> <kbd aria-hidden="true">⌘ K</kbd>
         </>
+      ) : (
+        !compact && (
+          <>
+            Quick search{" "}
+            <kbd className="ml-2 hidden text-xs text-muted-foreground sm:inline">
+              ⌘K / Ctrl+K
+            </kbd>
+          </>
+        )
       )}
     </Button>
   );

@@ -1,7 +1,7 @@
 import { PaletteTrigger } from "@/features/search/components/command-palette";
 import { redirect } from "next/navigation";
 import { ApplicationShell } from "@/components/layout/application-shell";
-import { PageContainer } from "@/components/layout/page-container";
+import { AddItemMenu } from "@/components/layout/workspace-menu";
 import { DashboardUnavailable } from "@/features/dashboard/components/dashboard-unavailable";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { getDashboardPageData } from "@/features/dashboard/queries.server";
@@ -21,7 +21,14 @@ export default async function PrivateEntryPage() {
   return (
     <ApplicationShell
       context="Your collection"
-      headerActions={<PaletteTrigger compact />}
+      dashboard
+      railAction={result.data.canManage ? <AddItemMenu /> : undefined}
+      headerActions={
+        <>
+          <PaletteTrigger dashboard />
+          <SignOutButton compact />
+        </>
+      }
       items={[
         {
           label: "Your collection",
@@ -37,6 +44,11 @@ export default async function PrivateEntryPage() {
         ...(result.data.role === "ADMIN"
           ? [
               {
+                label: "Manage console catalog",
+                href: "/app/catalog",
+                icon: "catalog" as const,
+              },
+              {
                 label: "Public collection",
                 href: "/app/settings/public",
                 icon: "public" as const,
@@ -45,10 +57,7 @@ export default async function PrivateEntryPage() {
           : []),
       ]}
     >
-      <PageContainer>
-        <Dashboard data={result.data} />
-        <SignOutButton />
-      </PageContainer>
+      <Dashboard data={result.data} />
     </ApplicationShell>
   );
 }
