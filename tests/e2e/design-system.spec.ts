@@ -80,64 +80,140 @@ test("compact navigation traps focus, closes with Escape and closes after naviga
   ).toBeInViewport();
 });
 
-test("workspace hamburger morph follows toggle, dismissal, navigation and live reduced motion", async ({
+test("dock expands over the page, keeps its state and supports both toggle controls", async ({
   page,
 }, info) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/design-preview");
-  const trigger = page.getByRole("button", { name: "Workspace menu" });
+  const rail = page.getByRole("complementary", { name: "Workspace sidebar" });
+  const trigger = rail.getByRole("button", { name: "Workspace menu" });
   const icon = trigger.locator("svg");
   const outerLine = icon.locator("path").first();
-  const menu = page.getByRole("menu", { name: "Workspace menu" });
+  const navigation = rail.getByRole("navigation", { name: "Main navigation" });
+  const forms = navigation.getByRole("link", { name: "Forms", exact: true });
+  const bodyBefore = await page.locator(".workspace-body").boundingBox();
+  const railBefore = await rail.boundingBox();
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await expect(rail).toHaveCSS("width", "72px");
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
   await expect(icon).toHaveCSS("transition-duration", "0.6s");
   await expect(icon).toHaveCSS(
     "transition-timing-function",
     "cubic-bezier(0.4, 0, 0.2, 1)",
   );
-  await expect(icon).toHaveAttribute("data-state", "closed");
-  await page.screenshot({ path: info.outputPath("hamburger-closed.png") });
-  await trigger.click();
-  await expect(menu).toBeVisible();
+  await expect(forms.locator(".rail-link-title")).toBeHidden();
+  await forms.hover();
+  await expect(forms.locator(".rail-link-label")).toHaveCSS("opacity", "1");
+  await expect(forms.locator(".rail-link-highlight")).toHaveCSS("opacity", "1");
+  await expect(rail).toHaveCSS("width", "72px");
+  await page.screenshot({ path: info.outputPath("dock-collapsed.png") });
+
+  await rail
+    .getByRole("button", { name: "Expand sidebar", exact: true })
+    .click();
+  await expect(rail).toHaveCSS("width", "240px");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
-  await expect(trigger).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(icon).toHaveCSS(
     "transform",
     "matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)",
   );
   await expect(outerLine).toHaveCSS("stroke-dasharray", "20px, 300px");
   await expect(outerLine).toHaveCSS("stroke-dashoffset", "-32.42px");
-  await page.screenshot({ path: info.outputPath("hamburger-open.png") });
-  // The same control remains clickable while the menu is open.
-  await trigger.click();
-  await expect(menu).toHaveCount(0);
-  await expect(icon).toHaveAttribute("data-state", "closed");
-  await trigger.focus();
-  await page.keyboard.press("Enter");
-  await expect(menu).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(menu).toHaveCount(0);
-  await expect(trigger).toBeFocused();
-  await expect(icon).toHaveAttribute("data-state", "closed");
-  await trigger.click();
+  await expect(forms.locator(".rail-link-title")).toHaveCSS("opacity", "1");
+  await forms.hover();
+  await expect(forms.locator(".rail-link-label")).toHaveCSS("opacity", "0");
+  // Expanding is an overlay: page content and the rail's anchor do not move.
+  expect(await page.locator(".workspace-body").boundingBox()).toEqual(
+    bodyBefore,
+  );
+  const railAfter = await rail.boundingBox();
+  expect(railAfter?.x).toBe(railBefore?.x);
+  expect(railAfter?.y).toBe(railBefore?.y);
+  expect(railAfter?.height).toBe(railBefore?.height);
+  await expect(page.getByRole("menu", { name: "Workspace menu" })).toHaveCount(
+    0,
+  );
+  await page.screenshot({ path: info.outputPath("dock-expanded.png") });
+  // This is a pinned dock, so clicking outside leaves the chosen state intact.
   await page
     .getByRole("heading", { name: "GemuKore", level: 1, exact: true })
     .click();
-  await expect(menu).toHaveCount(0);
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await forms.click();
+  await expect(page).toHaveURL(/#forms$/);
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await trigger.click();
+  await expect(rail).toHaveCSS("width", "72px");
+  await trigger.click();
+  await rail
+    .getByRole("button", { name: "Collapse sidebar", exact: true })
+    .click();
+  await expect(rail).toHaveCSS("width", "72px");
   await expect(icon).toHaveAttribute("data-state", "closed");
+  expect(errors).toEqual([]);
+});
+
+test("dock supports keyboard focus, interrupted toggles, live reduced motion and desktop resizing", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/design-preview");
+  const rail = page.getByRole("complementary", { name: "Workspace sidebar" });
+  const trigger = rail.getByRole("button", { name: "Workspace menu" });
+  const icon = trigger.locator("svg");
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Tab");
+  await expect(
+    rail.getByRole("link", { name: "Overview", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  // Toggle during the spring, then change the system preference in flight.
+  await trigger.click();
+  await trigger.click();
   await trigger.click();
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(icon).toHaveCSS("transition-duration", "0s");
-  await expect(outerLine).toHaveCSS("transition-duration", "0s");
-  // Reducing motion keeps the close shape while stopping interpolation.
-  await expect(icon).toHaveCSS(
-    "transform",
-    "matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)",
+  await expect(rail).toHaveCSS("width", "240px");
+  await expect(rail.locator(".rail-heading-label")).toHaveCSS("opacity", "1");
+  await expect(rail.locator(".rail-link-title").first()).toHaveCSS(
+    "opacity",
+    "1",
   );
-  await menu.getByRole("menuitem", { name: "Forms", exact: true }).click();
-  await expect(menu).toHaveCount(0);
-  await expect(page).toHaveURL(/#forms$/);
-  await expect(icon).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
+  await expect(icon).toHaveCSS("transition-duration", "0s");
+  await expect(icon.locator("path").first()).toHaveCSS(
+    "transition-duration",
+    "0s",
+  );
+  await trigger.click();
+  await expect(rail).toHaveCSS("width", "72px");
+  await expect(rail.locator(".rail-heading-label")).toHaveCSS("opacity", "0");
+  await expect(rail.locator(".rail-link-title").first()).toHaveCSS(
+    "opacity",
+    "0",
+  );
+  const forms = rail.getByRole("link", { name: "Forms", exact: true });
+  await forms.focus();
+  await expect(forms.locator(".rail-link-label")).toHaveCSS("opacity", "1");
+  await expect(forms.locator(".rail-link-label")).toHaveCSS(
+    "transition-duration",
+    "0s",
+  );
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await trigger.click();
+  await page.setViewportSize({ width: 640, height: 700 });
+  await expect(rail).toBeHidden();
+  await expect(page.getByRole("main")).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: "Open navigation" }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(rail).toHaveCSS("width", "72px");
+  await expect(icon).toHaveAttribute("data-state", "closed");
 });
 
 test("small screens and zoom-sized layouts stay usable in both themes", async ({

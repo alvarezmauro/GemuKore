@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { ThemeMenu } from "@/components/theme-menu";
-import { Navigation, type NavigationItem } from "./navigation";
+import type { NavigationItem } from "./navigation";
 import { MobileNavigation } from "./mobile-navigation";
 import Link from "next/link";
 import { Gamepad2 } from "lucide-react";
-import { WorkspaceMenu } from "./workspace-menu";
+import { WorkspaceRail } from "./workspace-rail";
 
 export function ApplicationShell({
   children,
@@ -29,11 +29,7 @@ export function ApplicationShell({
       >
         Skip to content
       </a>
-      <aside className="workspace-rail">
-        <WorkspaceMenu items={items} />
-        <Navigation items={items} compact />
-        {railAction && <div className="rail-action">{railAction}</div>}
-      </aside>
+      <WorkspaceRail items={items} action={railAction} />
       <div className="workspace-body">
         <header className="workspace-header">
           <div className="workspace-identity">

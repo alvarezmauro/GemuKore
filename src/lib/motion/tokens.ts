@@ -12,6 +12,16 @@ export const layoutTransition = {
   duration: motionTiming.layout / 1000,
   ease: motionEase,
 };
+// User-requested Framer dock timings, scoped to the desktop navigation.
+export const dockTransition = {
+  type: "spring",
+  duration: 0.4,
+  bounce: 0,
+} as const;
+export const dockHighlightTransition = {
+  ...dockTransition,
+  duration: 0.2,
+} as const;
 export const motionCssVariables = {
   "--motion-feedback": `${motionTiming.feedback}ms`,
   "--motion-enter": `${motionTiming.enter}ms`,

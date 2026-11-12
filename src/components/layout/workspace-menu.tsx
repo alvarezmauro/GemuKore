@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { Plus, Gamepad2, Disc3, Cable } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { HamburgerIcon } from "@/components/ui/hamburger-icon";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -13,34 +11,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import type { NavigationItem } from "./navigation";
-
-export function WorkspaceMenu({ items }: { items: readonly NavigationItem[] }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Workspace menu"
-          className="hamburger-button rail-menu-button"
-        >
-          <HamburgerIcon open={open} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent side="right" align="start" sideOffset={16}>
-        <DropdownMenuLabel>Your workspace</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {items.map((item) => (
-          <DropdownMenuItem key={item.href} asChild>
-            <Link href={item.href}>{item.label}</Link>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
 
 export function AddItemMenu() {
   return (

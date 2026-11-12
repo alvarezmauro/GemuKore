@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "motion/react";
 import {
   House,
   Layers,
@@ -12,6 +15,10 @@ import {
   LibraryBig,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useMotionAllowed } from "@/lib/motion/use-motion-preference";
+import { dockTransition, dockHighlightTransition } from "@/lib/motion/tokens";
+
+const DockLink = motion.create(Link);
 
 const icons = {
   overview: House,
@@ -37,20 +44,27 @@ export function Navigation({
   items,
   onNavigate,
   compact = false,
+  expanded = false,
+  id,
 }: {
   items: readonly NavigationItem[];
   onNavigate?: () => void;
   compact?: boolean;
+  expanded?: boolean;
+  id?: string;
 }) {
+  const motionAllowed = useMotionAllowed();
   return (
     <nav
+      id={id}
       aria-label="Main navigation"
       className={compact ? "rail-navigation" : "space-y-1"}
     >
       {items.map(({ label, href, icon, current }) => {
         const Icon = icons[icon];
+        const ItemLink = compact ? DockLink : Link;
         return (
-          <Link
+          <ItemLink
             key={href}
             href={href}
             onClick={onNavigate}
@@ -62,10 +76,43 @@ export function Navigation({
                 : "flex min-h-11 items-center gap-3 rounded-lg px-3 py-3 text-[15px] leading-5 hover:bg-sidebar-accent motion-reduce:transition-none",
               current && "bg-sidebar-accent font-semibold",
             )}
+            {...(compact
+              ? {
+                  initial: false,
+                  animate: "rest",
+                  whileHover: "highlight",
+                  whileFocus: "highlight",
+                }
+              : {})}
           >
+            {compact && (
+              <motion.span
+                aria-hidden="true"
+                className="rail-link-highlight"
+                variants={{
+                  rest: { opacity: 0, scale: motionAllowed ? 0.6 : 1 },
+                  highlight: { opacity: 1, scale: 1 },
+                }}
+                transition={
+                  motionAllowed ? dockHighlightTransition : { duration: 0 }
+                }
+              />
+            )}
             <Icon className="size-5 shrink-0" aria-hidden="true" />
+            {compact && (
+              <motion.span
+                className="rail-link-title"
+                aria-hidden="true"
+                initial={false}
+                animate={{ opacity: expanded ? 1 : 0 }}
+                transition={motionAllowed ? dockTransition : { duration: 0 }}
+              >
+                {label}
+              </motion.span>
+            )}
             <span
               className={compact ? "rail-link-label" : "min-w-0 break-words"}
+              aria-hidden={compact || undefined}
             >
               {label}
             </span>
@@ -75,7 +122,7 @@ export function Navigation({
                 aria-hidden="true"
               />
             )}
-          </Link>
+          </ItemLink>
         );
       })}
     </nav>

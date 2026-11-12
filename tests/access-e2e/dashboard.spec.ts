@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { fixture, signIn } from "../helpers/model-browser";
+// Fixtures, screenshots and multiple real page visits share this journey budget.
+// Individual assertions and server/database deadlines keep their normal limits.
+test.setTimeout(60_000);
 test.beforeEach(async () => {
   await fixture("reset-search");
   await fixture("reset");
@@ -327,6 +330,28 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
       fit.heroControlsFit,
       `${viewport.width} × ${viewport.height} hero controls`,
     ).toBe(true);
+    const sidebar = page.getByRole("complementary", {
+      name: "Workspace sidebar",
+    });
+    await expect(
+      sidebar.getByRole("button", { name: "Add item", exact: true }),
+    ).toBeInViewport();
+    await sidebar
+      .getByRole("button", { name: "Expand sidebar", exact: true })
+      .click();
+    await expect(sidebar).toHaveCSS("width", "240px");
+    await expect(
+      sidebar.getByRole("link", { name: "Public collection", exact: true }),
+    ).toBeInViewport();
+    await expect(
+      sidebar.getByRole("button", { name: "Collapse sidebar", exact: true }),
+    ).toBeInViewport();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollHeight),
+    ).toBe(fit.pageHeight);
+    await sidebar
+      .getByRole("button", { name: "Collapse sidebar", exact: true })
+      .click();
   }
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect
@@ -366,6 +391,13 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
     "animation-name",
     "none",
   );
+  await page
+    .getByRole("button", { name: "Expand sidebar", exact: true })
+    .click();
+  await page.screenshot({
+    path: info.outputPath("dashboard-dock-expanded.png"),
+    fullPage: true,
+  });
   await page.getByRole("button", { name: "Add item", exact: true }).click();
   await expect(
     page.getByRole("menuitem", { name: "Add console", exact: true }),
@@ -380,4 +412,11 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
   await expect(
     page.getByRole("button", { name: "Add item", exact: true }),
   ).toBeFocused();
+  await expect(page.locator(".workspace-rail")).toHaveAttribute(
+    "data-expanded",
+    "true",
+  );
+  await page
+    .getByRole("button", { name: "Collapse sidebar", exact: true })
+    .click();
 });

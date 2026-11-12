@@ -318,6 +318,22 @@ test("@a11y navigation, appearance and location dialogs trap and restore keyboar
     await trap(page, dialog);
     await page.keyboard.press("Escape");
     await expect(trigger).toBeFocused();
+  } else {
+    const sidebar = page.getByRole("complementary", {
+      name: "Workspace sidebar",
+    });
+    await sidebar
+      .getByRole("button", { name: "Expand sidebar", exact: true })
+      .click();
+    await expect(sidebar).toHaveCSS("width", "240px");
+    await scan(page, info, "expanded-sidebar");
+    await sidebar
+      .getByRole("button", { name: "Collapse sidebar", exact: true })
+      .focus();
+    await page.keyboard.press("Escape");
+    await expect(
+      sidebar.getByRole("button", { name: "Workspace menu", exact: true }),
+    ).toBeFocused();
   }
   const theme = page.getByRole("button", { name: "Choose theme" });
   await tabTo(page, theme);
