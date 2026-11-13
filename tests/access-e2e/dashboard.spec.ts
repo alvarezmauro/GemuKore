@@ -341,6 +341,7 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
       sidebar.getByRole("button", { name: "Add item", exact: true }),
     ).toBeInViewport();
     await expect(sidebar).toHaveCSS("width", "240px");
+    await expect(sidebar.locator(".rail-add-label")).toHaveCSS("opacity", "1");
     const expandedBody = await page.locator(".workspace-body").boundingBox();
     const railBounds = await sidebar.boundingBox();
     expect(expandedBody!.x).toBeGreaterThan(railBounds!.x + railBounds!.width);
@@ -357,6 +358,7 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
       .getByRole("button", { name: "Collapse sidebar", exact: true })
       .click();
     await expect(sidebar).toHaveCSS("width", "72px");
+    await expect(sidebar.locator(".rail-add-label")).toHaveCSS("opacity", "0");
     const compactBody = await page.locator(".workspace-body").boundingBox();
     expect(compactBody!.width).toBeCloseTo(expandedBody!.width + 168);
     await sidebar
@@ -383,8 +385,16 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
     name: "Next additions",
     exact: true,
   });
-  for (let step = 0; step < 8 && (await next.isEnabled()); step++)
+  for (let step = 0; step < 8 && (await next.isEnabled()); step++) {
     await next.click();
+    // Let the scroll event update the disabled state before the next click.
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        }),
+    );
+  }
   await expect(last).toBeInViewport({ ratio: 0.9 });
   await expect(next).toBeDisabled();
   await page
@@ -405,6 +415,23 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
     path: info.outputPath("dashboard-dock-expanded.png"),
     fullPage: true,
   });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  // Sample both labels during the same collapse frame to catch instant hiding.
+  const fading = await page.evaluate(async () => {
+    document.querySelector<HTMLButtonElement>(".rail-toggle")!.click();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return [".rail-add-label", ".rail-link-title"].map((selector) =>
+      Number(getComputedStyle(document.querySelector(selector)!).opacity),
+    );
+  });
+  expect(fading[0]).toBeGreaterThan(0);
+  expect(fading[0]).toBeLessThan(1);
+  expect(Math.abs(fading[0] - fading[1])).toBeLessThan(0.1);
+  await expect(page.locator(".rail-add-label")).toHaveCSS("opacity", "0");
+  await page
+    .getByRole("button", { name: "Expand sidebar", exact: true })
+    .click();
+  await expect(page.locator(".rail-add-label")).toHaveCSS("opacity", "1");
   await page.getByRole("button", { name: "Add item", exact: true }).click();
   await expect(
     page.getByRole("menuitem", { name: "Add console", exact: true }),

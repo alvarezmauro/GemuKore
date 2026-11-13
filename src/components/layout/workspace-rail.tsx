@@ -58,6 +58,7 @@ export function WorkspaceRail({
         className="workspace-rail"
         data-expanded={expanded}
         initial={false}
+        animate={expanded ? "expanded" : "collapsed"}
         onFocusCapture={() => {
           focusedWithin.current = true;
         }}
