@@ -1651,3 +1651,30 @@
     transform: rotate(0) scale(1);
   }
 }
+
+/* On touch-sized layouts labels float above the dock, keeping every action
+   reachable even in deeply nested locations at 320px. */
+@media (max-width: 639px) {
+  .location-dock-button .location-dock-label {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    width: max-content !important;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .location-dock-button:first-child .location-dock-label {
+    right: auto;
+    left: 0;
+  }
+  .location-dock-label[data-active="false"] {
+    visibility: hidden;
+  }
+  .location-dock-label > span {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--popover);
+    color: var(--popover-foreground);
+    padding: 6px 10px;
+  }
+}

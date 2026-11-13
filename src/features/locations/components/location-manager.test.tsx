@@ -152,3 +152,24 @@ it("turns a lost action response into recoverable feedback and keeps the form", 
   );
   expect(within(dialog).getByLabelText(/Name/)).toHaveValue("Room");
 });
+
+it("expands dock labels on keyboard focus and collapses them on Escape", async () => {
+  render(<LocationManager locations={locationEntries([home])} canManage />);
+  const dock = screen.getByRole("group", { name: "Actions for Home" });
+  const edit = within(dock).getByRole("button", { name: "Edit or move Home" });
+  const child = within(dock).getByRole("button", { name: "Add child to Home" });
+  const label = (button: HTMLElement) => button.querySelector("[data-active]");
+  expect(label(edit)).toHaveAttribute("data-active", "false");
+  fireEvent.focus(edit);
+  expect(label(edit)).toHaveAttribute("data-active", "true");
+  fireEvent.blur(edit);
+  fireEvent.focus(child);
+  expect(label(edit)).toHaveAttribute("data-active", "false");
+  expect(label(child)).toHaveAttribute("data-active", "true");
+  fireEvent.keyDown(child, { key: "Escape" });
+  expect(label(child)).toHaveAttribute("data-active", "false");
+  fireEvent.click(child);
+  expect(screen.getByLabelText("Parent location")).toHaveValue(home.id);
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  await waitFor(() => expect(child).toHaveFocus());
+});

@@ -311,3 +311,64 @@ test("fits a 320px screen with long names, dark theme and reduced motion", async
   });
   expect(errors).toEqual([]);
 });
+
+test("expands action labels on hover and focus without changing row height", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await fixture("seed-locations");
+  await page.goto("/app/locations");
+  const dock = page.getByRole("group", {
+    name: "Actions for Office",
+    exact: true,
+  });
+  const edit = dock.getByRole("button", {
+    name: "Edit or move Office",
+    exact: true,
+  });
+  const child = dock.getByRole("button", {
+    name: "Add child to Office",
+    exact: true,
+  });
+  const height = await row(page, "Office").evaluate(
+    (el) => el.getBoundingClientRect().height,
+  );
+  await edit.hover();
+  await expect(edit.locator("[data-active]")).toHaveAttribute(
+    "data-active",
+    "true",
+  );
+  await child.hover();
+  await expect(child.locator("[data-active]")).toHaveAttribute(
+    "data-active",
+    "true",
+  );
+  await expect(edit.locator("[data-active]")).toHaveAttribute(
+    "data-active",
+    "false",
+  );
+  await page.getByRole("heading", { name: "Locations", exact: true }).hover();
+  await expect(child.locator("[data-active]")).toHaveAttribute(
+    "data-active",
+    "false",
+  );
+  await edit.focus();
+  await expect(edit.locator("[data-active]")).toHaveAttribute(
+    "data-active",
+    "true",
+  );
+  await edit.press("Escape");
+  await expect(edit.locator("[data-active]")).toHaveAttribute(
+    "data-active",
+    "false",
+  );
+  expect(
+    await row(page, "Office").evaluate(
+      (el) => el.getBoundingClientRect().height,
+    ),
+  ).toBe(height);
+  await edit.press("Enter");
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(edit).toBeFocused();
+});

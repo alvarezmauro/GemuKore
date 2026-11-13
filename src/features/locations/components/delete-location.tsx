@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { AlertDialog } from "radix-ui";
 import { Button } from "@/components/ui/button";
 import type { LocationEntry } from "../contracts";
@@ -9,8 +9,10 @@ import { submitLocationChange } from "../client";
 export function DeleteLocation({
   location,
   onSuccess,
+  trigger,
 }: {
   location: LocationEntry;
+  trigger?: ReactNode;
   onSuccess: (message: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -27,13 +29,15 @@ export function DeleteLocation({
       }}
     >
       <AlertDialog.Trigger asChild>
-        <Button
-          variant="ghost"
-          aria-label={`Delete ${location.name}`}
-          disabled={Boolean(location.childCount || location.itemCount)}
-        >
-          Delete
-        </Button>
+        {trigger ?? (
+          <Button
+            variant="ghost"
+            aria-label={`Delete ${location.name}`}
+            disabled={Boolean(location.childCount || location.itemCount)}
+          >
+            Delete
+          </Button>
+        )}
       </AlertDialog.Trigger>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="motion-overlay fixed inset-0 z-50 bg-black/40" />

@@ -20,7 +20,7 @@ import {
 } from "../contracts";
 import { submitLocationChange } from "../client";
 import { LocationForm } from "./location-form";
-import { DeleteLocation } from "./delete-location";
+import { LocationActions } from "./location-actions";
 
 export function LocationManager({
   locations,
@@ -80,19 +80,19 @@ export function LocationManager({
           description="Start with a home or room, then add the cabinets, shelves and boxes inside it."
         />
       ) : (
-        <Card>
+        <Card className="[--card-spacing:--spacing(4)]">
           <CardContent>
             <ul aria-label="Location hierarchy" className="divide-y">
               {locations.map((location) => (
                 <li
                   key={location.id}
                   data-location-id={location.id}
-                  className="py-5 first:pt-0 last:pb-0"
+                  className="py-3 first:pt-0 last:pb-0"
                   style={{
                     paddingLeft: `${Math.min(location.path.length - 1, 3) * 12}px`,
                   }}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                     {location.parentId ? (
                       <CornerDownRight
                         className="mt-1 size-5 shrink-0 text-muted-foreground"
@@ -104,7 +104,7 @@ export function LocationManager({
                         aria-hidden="true"
                       />
                     )}
-                    <div className="min-w-0 flex-1 space-y-2">
+                    <div className="min-w-0 flex-1 basis-40 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="min-w-0 break-words font-heading text-lg">
                           {location.name}
@@ -148,82 +148,54 @@ export function LocationManager({
                         · {location.itemCount}{" "}
                         {location.itemCount === 1 ? "item" : "items"}
                       </p>
-                      {canManage && (
-                        <>
-                          <div className="flex flex-wrap items-center gap-1">
-                            <LocationForm
-                              location={location}
-                              locations={locations}
-                              onSuccess={onSuccess}
-                              trigger={
-                                <Button
-                                  variant="outline"
-                                  aria-label={`Edit or move ${location.name}`}
-                                >
-                                  Edit or move
-                                </Button>
-                              }
-                            />
-                            <LocationForm
-                              parentId={location.id}
-                              locations={locations}
-                              onSuccess={onSuccess}
-                              trigger={
-                                <Button
-                                  variant="ghost"
-                                  aria-label={`Add child to ${location.name}`}
-                                >
-                                  Add child
-                                </Button>
-                              }
-                            />
-                            {(["up", "down"] as const).map((direction) => (
-                              <Button
-                                key={direction}
-                                variant="ghost"
-                                size="icon"
-                                aria-label={`Move ${location.name} ${direction}`}
-                                disabled={
-                                  pending ||
-                                  !(direction === "up"
-                                    ? location.canMoveUp
-                                    : location.canMoveDown)
-                                }
-                                onClick={() =>
-                                  startTransition(async () =>
-                                    setFeedback(
-                                      await submitLocationChange({
-                                        operation: "reorder",
-                                        id: location.id,
-                                        updatedAt: location.updatedAt,
-                                        direction,
-                                      }),
-                                    ),
-                                  )
-                                }
-                              >
-                                {direction === "up" ? (
-                                  <ArrowUp aria-hidden="true" />
-                                ) : (
-                                  <ArrowDown aria-hidden="true" />
-                                )}
-                              </Button>
-                            ))}
-                            <DeleteLocation
-                              location={location}
-                              onSuccess={onSuccess}
-                            />
-                          </div>
-                          {(location.childCount > 0 ||
-                            location.itemCount > 0) && (
-                            <p className="text-xs text-muted-foreground">
-                              Move children and items elsewhere to enable
-                              deletion.
-                            </p>
-                          )}
-                        </>
-                      )}
                     </div>
+                    {canManage && (
+                      <div className="flex w-full max-w-full flex-wrap items-center justify-center gap-2 sm:w-[22rem] sm:shrink-0 sm:justify-end">
+                        <LocationActions
+                          location={location}
+                          locations={locations}
+                          onSuccess={onSuccess}
+                        />
+                        <div
+                          role="group"
+                          aria-label={`Reorder ${location.name}`}
+                          className="flex"
+                        >
+                          {(["up", "down"] as const).map((direction) => (
+                            <Button
+                              key={direction}
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Move ${location.name} ${direction}`}
+                              disabled={
+                                pending ||
+                                !(direction === "up"
+                                  ? location.canMoveUp
+                                  : location.canMoveDown)
+                              }
+                              onClick={() =>
+                                startTransition(async () =>
+                                  setFeedback(
+                                    await submitLocationChange({
+                                      operation: "reorder",
+                                      id: location.id,
+                                      updatedAt: location.updatedAt,
+                                      direction,
+                                    }),
+                                  ),
+                                )
+                              }
+                            >
+                              {direction === "up" ? (
+                                <ArrowUp aria-hidden="true" />
+                              ) : (
+                                <ArrowDown aria-hidden="true" />
+                              )}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </li>
               ))}
