@@ -173,3 +173,35 @@ it("expands dock labels on keyboard focus and collapses them on Escape", async (
   fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
   await waitFor(() => expect(child).toHaveFocus());
 });
+
+it("groups children under their parent and keeps separate roots distinct", () => {
+  const cabinet = row("cabinet", "Cabinet", shelf.id);
+  const other = row("other", "Other");
+  render(
+    <LocationManager
+      locations={locationEntries([home, shelf, cabinet, other])}
+      canManage={false}
+    />,
+  );
+  const hierarchy = screen.getByRole("list", {
+    name: "Location hierarchy",
+  });
+  expect(hierarchy.children).toHaveLength(2);
+  const homeChildren = screen.getByRole("list", {
+    name: "Children of Home",
+  });
+  expect(
+    within(homeChildren).getByRole("heading", { name: "Shelf" }),
+  ).toBeVisible();
+  const shelfChildren = within(homeChildren).getByRole("list", {
+    name: "Children of Shelf",
+  });
+  expect(
+    within(shelfChildren).getByRole("heading", {
+      name: "Cabinet",
+    }),
+  ).toBeVisible();
+  expect(
+    within(homeChildren).queryByRole("heading", { name: "Other" }),
+  ).not.toBeInTheDocument();
+});

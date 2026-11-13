@@ -46,7 +46,7 @@ test.afterAll(async () => {
 const row = (page: Page, name: string) =>
   page
     .getByRole("list", { name: "Location hierarchy", exact: true })
-    .getByRole("listitem")
+    .locator("[data-location-id]")
     .filter({ has: page.getByRole("heading", { name, exact: true }) });
 
 test("@critical creates a complete nested hierarchy through the forms and retains it after reload", async ({

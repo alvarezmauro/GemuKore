@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import {
@@ -21,6 +20,7 @@ import {
 import { submitLocationChange } from "../client";
 import { LocationForm } from "./location-form";
 import { LocationActions } from "./location-actions";
+import { LocationTree } from "./location-tree";
 
 export function LocationManager({
   locations,
@@ -80,128 +80,124 @@ export function LocationManager({
           description="Start with a home or room, then add the cabinets, shelves and boxes inside it."
         />
       ) : (
-        <Card className="[--card-spacing:--spacing(4)]">
-          <CardContent>
-            <ul aria-label="Location hierarchy" className="divide-y">
-              {locations.map((location) => (
-                <li
-                  key={location.id}
-                  data-location-id={location.id}
-                  className="py-3 first:pt-0 last:pb-0"
-                  style={{
-                    paddingLeft: `${Math.min(location.path.length - 1, 3) * 12}px`,
-                  }}
-                >
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                    {location.parentId ? (
-                      <CornerDownRight
-                        className="mt-1 size-5 shrink-0 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <MapPin
-                        className="mt-1 size-5 shrink-0 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                    )}
-                    <div className="min-w-0 flex-1 basis-40 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="min-w-0 break-words font-heading text-lg">
-                          {location.name}
-                        </h2>
-                        <Badge variant="secondary">
-                          {locationTypeLabels[location.type]}
-                        </Badge>
-                      </div>
-                      <nav aria-label={`Path to ${location.name}`}>
-                        <ol className="flex flex-wrap gap-x-1 text-sm text-muted-foreground">
-                          {location.path.map((part, index) => (
-                            <li key={part.id} className="min-w-0 break-words">
-                              {index > 0 && (
-                                <span aria-hidden="true" className="mr-1">
-                                  {" / "}
-                                </span>
-                              )}
-                              <span
-                                aria-current={
-                                  index === location.path.length - 1
-                                    ? "location"
-                                    : undefined
-                                }
-                              >
-                                {part.name}
-                              </span>
-                            </li>
-                          ))}
-                        </ol>
-                      </nav>
-                      {location.description && (
-                        <p className="break-words text-sm text-muted-foreground whitespace-pre-wrap">
-                          {location.description}
-                        </p>
-                      )}
-                      <p className="text-sm text-muted-foreground">
-                        {location.childCount}{" "}
-                        {location.childCount === 1
-                          ? "child location"
-                          : "child locations"}{" "}
-                        · {location.itemCount}{" "}
-                        {location.itemCount === 1 ? "item" : "items"}
-                      </p>
-                    </div>
-                    {canManage && (
-                      <div className="flex w-full max-w-full flex-wrap items-center justify-center gap-2 sm:w-[22rem] sm:shrink-0 sm:justify-end">
-                        <LocationActions
-                          location={location}
-                          locations={locations}
-                          onSuccess={onSuccess}
-                        />
-                        <div
-                          role="group"
-                          aria-label={`Reorder ${location.name}`}
-                          className="flex"
-                        >
-                          {(["up", "down"] as const).map((direction) => (
-                            <Button
-                              key={direction}
-                              variant="ghost"
-                              size="icon"
-                              aria-label={`Move ${location.name} ${direction}`}
-                              disabled={
-                                pending ||
-                                !(direction === "up"
-                                  ? location.canMoveUp
-                                  : location.canMoveDown)
-                              }
-                              onClick={() =>
-                                startTransition(async () =>
-                                  setFeedback(
-                                    await submitLocationChange({
-                                      operation: "reorder",
-                                      id: location.id,
-                                      updatedAt: location.updatedAt,
-                                      direction,
-                                    }),
-                                  ),
-                                )
-                              }
-                            >
-                              {direction === "up" ? (
-                                <ArrowUp aria-hidden="true" />
-                              ) : (
-                                <ArrowDown aria-hidden="true" />
-                              )}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+        <LocationTree locations={locations}>
+          {(location) => (
+            <div
+              data-location-id={location.id}
+              className={
+                location.parentId
+                  ? "rounded-xl border border-border/50 bg-background/30 p-3"
+                  : "rounded-xl bg-muted/20 p-3"
+              }
+            >
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                {location.parentId ? (
+                  <CornerDownRight
+                    className="mt-1 size-5 shrink-0 self-start text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <MapPin
+                    className="size-9 shrink-0 self-start rounded-xl bg-accent p-2 text-accent-foreground"
+                    aria-hidden="true"
+                  />
+                )}
+                <div className="min-w-0 flex-1 basis-40 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="min-w-0 break-words font-heading text-lg">
+                      {location.name}
+                    </h2>
+                    <Badge variant="secondary">
+                      {locationTypeLabels[location.type]}
+                    </Badge>
                   </div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+                  <nav aria-label={`Path to ${location.name}`}>
+                    <ol className="flex flex-wrap gap-x-1 text-sm text-muted-foreground">
+                      {location.path.map((part, index) => (
+                        <li key={part.id} className="min-w-0 break-words">
+                          {index > 0 && (
+                            <span aria-hidden="true" className="mr-1">
+                              {" / "}
+                            </span>
+                          )}
+                          <span
+                            aria-current={
+                              index === location.path.length - 1
+                                ? "location"
+                                : undefined
+                            }
+                          >
+                            {part.name}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  </nav>
+                  {location.description && (
+                    <p className="break-words text-sm text-muted-foreground whitespace-pre-wrap">
+                      {location.description}
+                    </p>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {location.childCount}{" "}
+                    {location.childCount === 1
+                      ? "child location"
+                      : "child locations"}{" "}
+                    · {location.itemCount}{" "}
+                    {location.itemCount === 1 ? "item" : "items"}
+                  </p>
+                </div>
+                {canManage && (
+                  <div className="flex w-full max-w-full flex-wrap items-center justify-center gap-2 sm:w-[22rem] sm:shrink-0 sm:justify-end">
+                    <LocationActions
+                      location={location}
+                      locations={locations}
+                      onSuccess={onSuccess}
+                    />
+                    <div
+                      role="group"
+                      aria-label={`Reorder ${location.name}`}
+                      className="flex"
+                    >
+                      {(["up", "down"] as const).map((direction) => (
+                        <Button
+                          key={direction}
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Move ${location.name} ${direction}`}
+                          disabled={
+                            pending ||
+                            !(direction === "up"
+                              ? location.canMoveUp
+                              : location.canMoveDown)
+                          }
+                          onClick={() =>
+                            startTransition(async () =>
+                              setFeedback(
+                                await submitLocationChange({
+                                  operation: "reorder",
+                                  id: location.id,
+                                  updatedAt: location.updatedAt,
+                                  direction,
+                                }),
+                              ),
+                            )
+                          }
+                        >
+                          {direction === "up" ? (
+                            <ArrowUp aria-hidden="true" />
+                          ) : (
+                            <ArrowDown aria-hidden="true" />
+                          )}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </LocationTree>
       )}
     </>
   );
