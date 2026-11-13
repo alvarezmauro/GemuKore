@@ -35,7 +35,7 @@
   margin: 0;
   padding: var(--workspace-padding);
   display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   gap: var(--workspace-gap);
   background:
     radial-gradient(ellipse at 30% 44%, #89244370, transparent 68%),
@@ -52,6 +52,7 @@
   min-height: 0;
 }
 .workspace-rail {
+  width: 100%;
   position: sticky;
   top: var(--workspace-padding);
   z-index: 30;
@@ -203,6 +204,18 @@
   background: radial-gradient(ellipse, #ff406c, #a52649);
   color: white;
   box-shadow: 0 0 25px #fb3d5e45;
+}
+.rail-add-label {
+  display: none;
+  position: absolute;
+  left: calc(100% + 0.75rem);
+  white-space: nowrap;
+  color: var(--sidebar-foreground);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+.workspace-rail[data-expanded="true"] .rail-add-label {
+  display: inline;
 }
 .rail-add-button svg {
   width: 1.6rem;

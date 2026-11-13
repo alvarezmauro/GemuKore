@@ -322,9 +322,6 @@ test("@a11y navigation, appearance and location dialogs trap and restore keyboar
     const sidebar = page.getByRole("complementary", {
       name: "Workspace sidebar",
     });
-    await sidebar
-      .getByRole("button", { name: "Expand sidebar", exact: true })
-      .click();
     await expect(sidebar).toHaveCSS("width", "240px");
     await scan(page, info, "expanded-sidebar");
     await sidebar

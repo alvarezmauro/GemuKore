@@ -18,7 +18,7 @@ export function WorkspaceRail({
   items: readonly NavigationItem[];
   action?: ReactNode;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const motionAllowed = useMotionAllowed();
   const navigationId = useId();
   const rail = useRef<HTMLElement>(null);
@@ -46,15 +46,18 @@ export function WorkspaceRail({
 
   const ToggleIcon = expanded ? PanelLeftClose : PanelLeftOpen;
   return (
-    <div className="workspace-rail-slot">
+    <motion.div
+      className="workspace-rail-slot"
+      initial={false}
+      animate={{ width: expanded ? "15rem" : "4.5rem" }}
+      transition={motionAllowed ? dockTransition : { duration: 0 }}
+    >
       <motion.aside
         ref={rail}
         aria-label="Workspace sidebar"
         className="workspace-rail"
         data-expanded={expanded}
         initial={false}
-        animate={{ width: expanded ? "15rem" : "4.5rem" }}
-        transition={motionAllowed ? dockTransition : { duration: 0 }}
         onFocusCapture={() => {
           focusedWithin.current = true;
         }}
@@ -117,6 +120,6 @@ export function WorkspaceRail({
           </Button>
         </div>
       </motion.aside>
-    </div>
+    </motion.div>
   );
 }

@@ -18,6 +18,9 @@ export function AddItemMenu() {
       <DropdownMenuTrigger asChild>
         <Button size="icon" aria-label="Add item" className="rail-add-button">
           <Plus aria-hidden="true" />
+          <span className="rail-add-label" aria-hidden="true">
+            Add item
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="end" sideOffset={16}>

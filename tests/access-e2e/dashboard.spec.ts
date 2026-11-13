@@ -272,6 +272,10 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
     "border-radius",
     "0px",
   );
+  // The desktop rail is expanded on first load (mobile resets it when hidden).
+  await page.setViewportSize({ width: 1280, height: 800 });
+  if (info.project.name === "mobile-chromium") await page.reload();
+  await expect(page.locator(".workspace-rail")).toHaveCSS("width", "240px");
   for (const viewport of [
     { width: 1024, height: 640 },
     { width: 1280, height: 640 },
@@ -336,10 +340,10 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
     await expect(
       sidebar.getByRole("button", { name: "Add item", exact: true }),
     ).toBeInViewport();
-    await sidebar
-      .getByRole("button", { name: "Expand sidebar", exact: true })
-      .click();
     await expect(sidebar).toHaveCSS("width", "240px");
+    const expandedBody = await page.locator(".workspace-body").boundingBox();
+    const railBounds = await sidebar.boundingBox();
+    expect(expandedBody!.x).toBeGreaterThan(railBounds!.x + railBounds!.width);
     await expect(
       sidebar.getByRole("link", { name: "Public collection", exact: true }),
     ).toBeInViewport();
@@ -351,6 +355,12 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
     ).toBe(fit.pageHeight);
     await sidebar
       .getByRole("button", { name: "Collapse sidebar", exact: true })
+      .click();
+    await expect(sidebar).toHaveCSS("width", "72px");
+    const compactBody = await page.locator(".workspace-body").boundingBox();
+    expect(compactBody!.width).toBeCloseTo(expandedBody!.width + 168);
+    await sidebar
+      .getByRole("button", { name: "Expand sidebar", exact: true })
       .click();
   }
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -391,9 +401,6 @@ test("reference dashboard fits desktop viewports and its carousel reaches every 
     "animation-name",
     "none",
   );
-  await page
-    .getByRole("button", { name: "Expand sidebar", exact: true })
-    .click();
   await page.screenshot({
     path: info.outputPath("dashboard-dock-expanded.png"),
     fullPage: true,

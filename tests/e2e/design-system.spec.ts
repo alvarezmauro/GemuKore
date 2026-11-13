@@ -80,7 +80,7 @@ test("compact navigation traps focus, closes with Escape and closes after naviga
   ).toBeInViewport();
 });
 
-test("dock expands over the page, keeps its state and supports both toggle controls", async ({
+test("dock starts expanded, resizes the page, keeps its state and supports both toggle controls", async ({
   page,
 }, info) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -92,6 +92,12 @@ test("dock expands over the page, keeps its state and supports both toggle contr
   const outerLine = icon.locator("path").first();
   const navigation = rail.getByRole("navigation", { name: "Main navigation" });
   const forms = navigation.getByRole("link", { name: "Forms", exact: true });
+  await expect(rail).toHaveCSS("width", "240px");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await rail
+    .getByRole("button", { name: "Collapse sidebar", exact: true })
+    .click();
+  await expect(rail).toHaveCSS("width", "72px");
   const bodyBefore = await page.locator(".workspace-body").boundingBox();
   const railBefore = await rail.boundingBox();
   const errors: string[] = [];
@@ -124,10 +130,14 @@ test("dock expands over the page, keeps its state and supports both toggle contr
   await expect(forms.locator(".rail-link-title")).toHaveCSS("opacity", "1");
   await forms.hover();
   await expect(forms.locator(".rail-link-label")).toHaveCSS("opacity", "0");
-  // Expanding is an overlay: page content and the rail's anchor do not move.
-  expect(await page.locator(".workspace-body").boundingBox()).toEqual(
-    bodyBefore,
+  // The grid reserves the rail's width; content shrinks without overlapping it.
+  const bodyAfter = await page.locator(".workspace-body").boundingBox();
+  expect(bodyAfter!.x).toBeCloseTo(bodyBefore!.x + 168);
+  expect(bodyAfter!.width).toBeCloseTo(bodyBefore!.width - 168);
+  expect(bodyAfter!.x + bodyAfter!.width).toBeCloseTo(
+    bodyBefore!.x + bodyBefore!.width,
   );
+  expect(bodyAfter!.x).toBeGreaterThan((await rail.boundingBox())!.x + 240);
   const railAfter = await rail.boundingBox();
   expect(railAfter?.x).toBe(railBefore?.x);
   expect(railAfter?.y).toBe(railBefore?.y);
@@ -163,7 +173,10 @@ test("dock supports keyboard focus, interrupted toggles, live reduced motion and
   const rail = page.getByRole("complementary", { name: "Workspace sidebar" });
   const trigger = rail.getByRole("button", { name: "Workspace menu" });
   const icon = trigger.locator("svg");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
   await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
   await page.keyboard.press("Enter");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
   await page.keyboard.press("Tab");
